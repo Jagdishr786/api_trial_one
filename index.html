@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NASA Picture of the Day</title>
+  </head>
+  <body>
+    <h1>NASA Picture of the Day</h1>
+
+    <form>
+      <label for="date">Select a date:</label>
+      <input type="date" id="date" name="date" required>
+      <button type="submit">Search</button>
+    </form>
+
+    <hr>
+
+    <h2>Image of the day</h2>
+    <div id="image"></div>
+
+    <hr>
+
+    <h2>Search history</h2>
+    <ul id="history"></ul>
+
+    <script>
+      const API_KEY = "YOUR_API_KEY";
+      const dateInput = document.querySelector("#date");
+      const imageContainer = document.querySelector("#image");
+      const historyList = document.querySelector("#history");
+
+      // Load the image of the day on page load
+      fetch(`https://api.nasa.gov/planetary/apod?api_key=${API_KEY}`)
+        .then((response) => response.json())
+        .then((data) => {
+          displayImage(data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+      // Handle the form submission
+      const form = document.querySelector("form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const date = dateInput.value;
+        fetch(`https://api.nasa.gov/planetary/apod?date=${date}&api_key=${API_KEY}`)
+          .then((response) => response.json())
+          .then((data) => {
+            displayImage(data);
+            saveSearch(date);
+            displayHistory();
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      // Display an image object
+      function displayImage(image) {
+        imageContainer.innerHTML = `
+          <img src="${image.url}" alt="${image.title}">
+          <h3>${image.title}</h3>
+          <p>${image.date}</p>
+          <p>${image.explanation}</p>
+        `;
+      }
+
+      // Save a search to local storage
+      function saveSearch(date) {
+        const searches = JSON.parse(localStorage.getItem("searches")) || [];
+        searches.push(date);
+        localStorage.setItem("searches", JSON.stringify(searches));
+      }
+
+      // Display the search history
+      function displayHistory() {
+        const searches = JSON.parse(localStorage.getItem("searches")) || [];
+        historyList.innerHTML = "";
+        searches.forEach((search) => {
+          const li = document.createElement("li");
+          li.textContent = search;
+          historyList.appendChild(li);
+        });
+      }
+    </script>
+  </body>
+</html>
